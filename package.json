@@ -1,0 +1,18 @@
+{
+  "name": "niix-chat",
+  "version": "3.0.0",
+  "description": "NiiX Chat — self-hosted encrypted chat. Crypto: libsodium (X25519 + Ed25519 + XChaCha20-Poly1305).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "hash-wasm": "^4.12.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "socket.io": "^4.8.0"
+  }
+}

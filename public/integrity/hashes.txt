@@ -1,0 +1,10 @@
+# NiiX Chat — integrity hashes
+# Generated: 2026-05-07T11:51:26.527Z
+# Verify: https://chat.niiix.net/integrity/hashes.txt
+# Public key: https://chat.niiix.net/integrity/signing-key.pub
+
+b4b9108b363e23ae2c483b6391a256e53b392d88d1c9e90e3b8b75a2dd071499  index.html
+f8ca1216fcfdb22c28a1d1f22805b715e92481fb4a6e774f2b6dcd421bf0aafc  app.js
+cf2be79f975c0fe7cbeaad9577b9a68a10b91fd99036ecd79c5c6e8d4bc1d76c  crypto.js
+a25902c9170b2a156f5ce04eca4c211ff50f342575cc428b3099446f8aaf95d9  guide.js
+f112e962002d6a6195278166011b44a303f08ce7960f9e1b556e8b6183f3de94  vendor-sodium.js

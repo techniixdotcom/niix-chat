@@ -1,0 +1,2029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="referrer" content="no-referrer" />
+<title>NiiX Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400&display=block" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+:root {
+  --green: #0aff9e;
+  --pink: #ff0a6c;
+  --bg: #080b0f;
+  --bg2: #0d1117;
+  --bg3: #111820;
+  --border: #1a2530;
+  --dim: #3a4a5a;
+  --white: #e8f0f8;
+  --cyan: #00d4ff;
+  --yellow: #ffd700;
+  --red: #ff3333;
+  --nav-h: 52px;
+}
+html, body {
+  height: 100%;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  background: var(--bg);
+  color: var(--white);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px
+  );
+  pointer-events: none;
+  z-index: 8000;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(10,255,158,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(10,255,158,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); }
+::-webkit-scrollbar-thumb:hover { background: var(--green); }
+.view {
+  height: 100vh;
+  height: 100dvh;
+  height: var(--mobile-vh, 100dvh);
+  display: flex;
+  position: relative;
+  z-index: 1;
+}
+.hidden { display: none !important; }
+.cursor {
+  display: inline-block; width: 9px; height: 1em;
+  background: var(--green); vertical-align: text-bottom;
+  animation: blink 1s step-end infinite; margin-left: 2px;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+#auth-view {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  overflow-y: auto;
+}
+.auth-frame {
+  width: 100%;
+  max-width: 480px;
+  padding: 2rem 0;
+  animation: fadeIn 0.6s ease both;
+}
+.brand { margin-bottom: 1.6rem; }
+.ascii-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1.4rem;
+  scrollbar-width: none;
+}
+.ascii-wrap::-webkit-scrollbar { display: none; }
+pre.ascii {
+  font-family: 'Fira Code', 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  line-height: 1.26;
+  letter-spacing: 0;
+  word-spacing: 0;
+  margin: 0; padding: 0;
+  display: inline-block;
+  position: relative;
+}
+pre.ascii .g { color: var(--green); }
+pre.ascii .p { color: var(--pink); }
+.tagline {
+  color: var(--dim);
+  font-size: 0.8rem;
+  letter-spacing: 0.07em;
+  margin-bottom: 0.5rem;
+}
+.hero-divider {
+  color: var(--pink);
+  font-size: 0.75rem;
+  margin-bottom: 1.6rem;
+  letter-spacing: 0.05em;
+  overflow: hidden;
+}
+.tabs {
+  display: flex;
+  gap: 0.45rem;
+  margin-bottom: 1.4rem;
+}
+.tab {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  padding: 0.32rem 0.85rem;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+.tab:hover { color: var(--white); border-color: var(--dim); }
+.tab.active { color: var(--green); border-color: rgba(10,255,158,0.4); }
+.auth-form { display: none; flex-direction: column; gap: 1rem; }
+.auth-form.active { display: flex; animation: fadeIn 0.3s ease both; }
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+label > span {
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+label .req-star { color: var(--pink); margin-left: 2px; }
+input, textarea, .form-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--white);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  padding: 0.6rem 0.8rem;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+}
+input::placeholder, textarea::placeholder { color: var(--dim); }
+input:focus, textarea:focus { border-color: var(--green); }
+.hint {
+  font-size: 0.72rem;
+  color: var(--dim);
+  background: rgba(255,51,51,0.06);
+  border: 1px solid rgba(255,51,51,0.25);
+  border-left: 3px solid var(--red);
+  padding: 0.7rem 0.9rem;
+  line-height: 1.7;
+}
+.hint .warn-title {
+  color: var(--red);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  border-radius: 0;
+}
+.btn:hover { color: var(--green); border-color: var(--green); }
+.btn.primary {
+  border-color: rgba(10,255,158,0.4);
+  color: var(--green);
+}
+.btn.primary:hover {
+  background: var(--green);
+  color: var(--bg);
+}
+.btn.danger {
+  border-color: rgba(255,51,51,0.4);
+  color: var(--red);
+}
+.btn.danger:hover {
+  background: var(--red);
+  color: var(--bg);
+}
+.btn.pink {
+  border-color: rgba(255,10,108,0.4);
+  color: var(--pink);
+}
+.btn.pink:hover { background: var(--pink); color: var(--bg); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-spinner {
+  display: none;
+  width: 10px; height: 10px;
+  border: 1px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  margin-left: 0.5rem;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+.btn.loading .btn-spinner { display: inline-block; }
+.btn.loading .btn-label { opacity: 0.6; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.form-error {
+  color: var(--red);
+  font-size: 0.74rem;
+  min-height: 1rem;
+  letter-spacing: 0.04em;
+}
+.form-progress {
+  color: var(--green);
+  font-size: 0.7rem;
+  min-height: 0.9rem;
+  letter-spacing: 0.05em;
+  font-style: italic;
+}
+.auth-footer {
+  margin-top: 1.5rem;
+  font-size: 0.65rem;
+  color: var(--dim);
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.auth-footer .diamond { color: var(--pink); }
+#chat-view { flex-direction: row; }
+.sidebar {
+  width: 290px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.me {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  background: var(--bg2);
+}
+.me-info { min-width: 0; flex: 1; }
+.me-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.me-fp {
+  font-size: 0.62rem;
+  color: var(--dim);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  margin-top: 2px;
+}
+.me-fp:hover { color: var(--green); }
+.icon-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  width: 30px; height: 30px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  display: grid;
+  place-items: center;
+  transition: all 0.2s;
+  border-radius: 0;
+}
+.icon-btn:hover { color: var(--pink); border-color: var(--pink); }
+.search-wrap { padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); }
+.search-wrap input { font-size: 0.76rem; padding: 0.45rem 0.6rem; }
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-section:last-of-type {
+  border-bottom: none;
+  flex: 1;
+  min-height: 100px;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem 0.55rem;
+  background: var(--bg2);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.section-header .diamond { color: var(--pink); font-size: 0.85rem; flex-shrink: 0; }
+.section-header h3 {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--white);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.section-header .line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255,10,108,0.4) 0%, transparent 100%);
+}
+.section-header .mini-btn {
+  margin-left: 0.5rem;
+  background: transparent;
+  border: 1px solid rgba(10,255,158,0.4);
+  color: var(--green);
+  width: 22px; height: 22px;
+  font-size: 0.85rem;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  border-radius: 0;
+}
+.section-header .mini-btn:hover { background: var(--green); color: var(--bg); }
+.contacts {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+#groups-list { max-height: 30vh; }
+.contact {
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  border-left: 2px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+  background: var(--bg2);
+}
+.contact:hover { background: var(--bg3); }
+.contact.active {
+  background: var(--bg3);
+  border-left-color: var(--green);
+}
+.contact-avatar {
+  width: 28px; height: 28px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--dim);
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+  font-family: 'Share Tech Mono', monospace;
+}
+.contact.active .contact-avatar {
+  border-color: rgba(10,255,158,0.4);
+  color: var(--green);
+}
+.contact.group .contact-avatar {
+  border-color: rgba(255,10,108,0.4);
+  color: var(--pink);
+}
+.contact-name {
+  flex: 1;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--white);
+}
+.contact-meta {
+  font-size: 0.6rem;
+  color: var(--dim);
+  margin-top: 1px;
+  letter-spacing: 0.05em;
+}
+.contact-status {
+  width: 6px; height: 6px;
+  background: var(--dim);
+  flex-shrink: 0;
+}
+.contact-status.online { background: var(--green); }
+.no-contacts {
+  padding: 1rem;
+  font-size: 0.7rem;
+  color: var(--dim);
+  text-align: center;
+  font-style: italic;
+  letter-spacing: 0.05em;
+  line-height: 1.6;
+}
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg);
+}
+.chat-header {
+  padding: 0.9rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 56px;
+}
+.empty-header {
+  color: var(--dim);
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.peer-name {
+  font-size: 0.85rem;
+  color: var(--white);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.peer-name .diamond { color: var(--pink); margin-right: 0.4rem; }
+.peer-fp {
+  font-size: 0.62rem;
+  color: var(--dim);
+  margin-left: auto;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  font-family: 'Share Tech Mono', monospace;
+}
+.peer-fp:hover { color: var(--green); }
+.chat-header .meta-line {
+  font-size: 0.62rem;
+  color: var(--dim);
+  margin-top: 0.25rem;
+  letter-spacing: 0.05em;
+}
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.2rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.placeholder {
+  margin: auto;
+  text-align: center;
+  color: var(--dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  max-width: 320px;
+}
+.placeholder .diamond { color: var(--pink); font-size: 1.1rem; }
+.placeholder p { font-size: 0.78rem; line-height: 1.7; }
+.msg {
+  max-width: 78%;
+  padding: 0.55rem 0.85rem;
+  border: none;
+  background: transparent;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  word-wrap: break-word;
+  position: relative;
+  animation: fadeIn 0.18s ease-out;
+  border-radius: 0;
+}
+.msg.mine {
+  align-self: flex-end;
+  border-right: 2px solid rgba(10,255,158,0.35);
+  background: rgba(10,255,158,0.03);
+}
+.msg.theirs {
+  align-self: flex-start;
+  border-left: 2px solid rgba(255,10,108,0.3);
+}
+.msg.failed {
+  border-color: var(--red);
+  opacity: 0.6;
+}
+.msg.expiring {
+  border-style: dashed;
+}
+.msg-sender {
+  display: block;
+  font-size: 0.6rem;
+  color: var(--green);
+  margin-bottom: 0.2rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.msg.mine .msg-sender { display: none; }
+.msg-text {
+  color: var(--white);
+}
+.msg-text a {
+  color: var(--green);
+  text-decoration: underline;
+  text-decoration-color: rgba(10,255,158,0.4);
+  text-underline-offset: 2px;
+  word-break: break-all;       
+  overflow-wrap: anywhere;
+  transition: text-decoration-color 0.12s ease, color 0.12s ease;
+}
+.msg-text a:hover {
+  color: var(--white);
+  text-decoration-color: var(--green);
+}
+.msg.theirs .msg-text a {
+  color: var(--pink);
+  text-decoration-color: rgba(255,10,108,0.4);
+}
+.msg.theirs .msg-text a:hover {
+  color: var(--white);
+  text-decoration-color: var(--pink);
+}
+.yt-embed {
+  display: block;
+  margin: 0.45rem 0 0.15rem;
+  max-width: 380px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.15s ease, transform 0.08s ease;
+}
+.yt-embed:hover { border-color: var(--green); }
+.yt-embed:active { transform: scale(0.997); }
+.yt-embed:focus-visible {
+  outline: 1px solid var(--green);
+  outline-offset: 2px;
+}
+.yt-thumb-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  overflow: hidden;
+}
+.yt-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scale(1.32);
+}
+.yt-play-btn {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #fff;
+  background: rgba(0,0,0,0.65);
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  padding-left: 4px; 
+}
+.yt-embed:hover .yt-play-btn {
+  background: rgba(255, 0, 0, 0.85);
+  border-color: rgba(255,255,255,0.8);
+}
+.yt-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--dim);
+  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.18);
+}
+.yt-badge {
+  color: var(--red);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.yt-fallback-link {
+  color: var(--dim);
+  text-decoration: none;
+}
+.yt-fallback-link:hover { color: var(--green); }
+.yt-iframe-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+.yt-iframe-wrap iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+.msg-meta {
+  display: block;
+  font-size: 0.6rem;
+  color: var(--dim);
+  margin-top: 0.25rem;
+  letter-spacing: 0.06em;
+  font-family: 'Share Tech Mono', monospace;
+}
+.msg.mine .msg-meta { text-align: right; }
+.msg-ttl {
+  display: inline-block;
+  font-size: 0.6rem;
+  color: var(--yellow);
+  margin-left: 0.4rem;
+  letter-spacing: 0.05em;
+}
+.composer {
+  display: flex;
+  gap: 0.45rem;
+  padding: 0.8rem 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg2);
+  align-items: stretch;
+}
+.composer textarea {
+  flex: 1;
+  resize: none;
+  max-height: 140px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  padding: 0.55rem 0.7rem;
+}
+.composer-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  padding: 0 0.7rem;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  display: grid;
+  place-items: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  letter-spacing: 0.05em;
+  border-radius: 0;
+}
+.composer-btn:hover { color: var(--green); border-color: var(--green); }
+.composer-btn.active {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+.send-btn {
+  border-color: rgba(10,255,158,0.4);
+  color: var(--green);
+}
+.send-btn:hover { background: var(--green); color: var(--bg); }
+.send-btn svg { display: block; }
+.popup-menu {
+  position: fixed;
+  z-index: 800;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  min-width: 200px;
+  animation: fadeIn 0.12s ease-out;
+}
+.popup-title {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  color: var(--dim);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.popup-item {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  text-align: left;
+  padding: 0.55rem 0.85rem;
+  color: var(--white);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.74rem;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.12s;
+}
+.popup-item:hover {
+  background: var(--bg3);
+  color: var(--green);
+  border-left-color: var(--green);
+}
+.popup-item.active {
+  color: var(--green);
+  border-left-color: var(--green);
+}
+.popup-item.danger {
+  color: var(--red);
+}
+.popup-item.danger:hover {
+  background: rgba(255,51,51,0.06);
+  color: var(--red);
+  border-left-color: var(--red);
+}
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8,11,15,0.92);
+  backdrop-filter: blur(10px);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--pink);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: translateY(16px);
+  transition: transform 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--white);
+  text-transform: uppercase;
+}
+.modal-title .diamond { color: var(--pink); }
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.2rem 0.45rem;
+  transition: color 0.2s;
+}
+.modal-close:hover { color: var(--pink); }
+.modal-body {
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.modal-footer {
+  padding: 0.85rem 1.2rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  background: var(--bg2);
+}
+.member-picker {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  max-height: 200px;
+  overflow-y: auto;
+}
+.member-row {
+  padding: 0.55rem 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+  font-size: 0.78rem;
+  color: var(--white);
+}
+.member-row:last-child { border-bottom: none; }
+.member-row:hover { background: var(--bg2); }
+.member-row.selected {
+  background: rgba(10,255,158,0.04);
+  color: var(--green);
+}
+.member-row .checkbox {
+  width: 14px; height: 14px;
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+.member-row.selected .checkbox {
+  border-color: var(--green);
+  color: var(--green);
+}
+.member-picker:empty::after {
+  content: 'no users found';
+  display: block;
+  padding: 1rem;
+  text-align: center;
+  color: var(--dim);
+  font-size: 0.72rem;
+  font-style: italic;
+}
+.selected-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.selected-members:empty { display: none; }
+.chip {
+  background: transparent;
+  border: 1px solid rgba(10,255,158,0.35);
+  color: var(--green);
+  padding: 0.2rem 0.55rem;
+  font-size: 0.68rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.2s;
+}
+.chip:hover { background: rgba(10,255,158,0.06); }
+.chip .x { color: var(--dim); font-size: 0.75rem; }
+.manage-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.manage-members-list {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  max-height: 240px;
+  overflow-y: auto;
+}
+.manage-row {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.78rem;
+}
+.manage-row:last-child { border-bottom: none; }
+.manage-row-name {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  color: var(--white);
+  min-width: 0;
+}
+.manage-row-name .dim {
+  color: var(--dim);
+  font-size: 0.7rem;
+}
+.role-badge {
+  font-size: 0.55rem;
+  padding: 0.1rem 0.4rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  font-family: 'Share Tech Mono', monospace;
+}
+.role-badge.creator {
+  color: var(--pink);
+  border-color: rgba(255,10,108,0.5);
+}
+.role-badge.admin {
+  color: var(--green);
+  border-color: rgba(10,255,158,0.4);
+}
+.manage-row-actions {
+  display: flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+.row-action {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  padding: 0.3rem 0.55rem;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+  border-radius: 0;
+}
+.row-action:hover {
+  color: var(--green);
+  border-color: var(--green);
+}
+.row-action.danger:hover {
+  color: var(--red);
+  border-color: var(--red);
+}
+.row-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.icon-btn { position: relative; }
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--pink);
+  color: var(--bg);
+  font-size: 0.55rem;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  letter-spacing: 0;
+  font-family: 'Share Tech Mono', monospace;
+  border-radius: 7px;
+}
+.search-wrap {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.search-wrap input { flex: 1; }
+.search-add-btn {
+  width: 30px;
+  height: 30px;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.lookup-card {
+  border: 1px solid rgba(10,255,158,0.4);
+  background: rgba(10,255,158,0.04);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.lookup-name {
+  font-size: 0.95rem;
+  color: var(--green);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.lookup-fp {
+  font-size: 0.7rem;
+  color: var(--dim);
+  font-family: 'Share Tech Mono', monospace;
+  word-break: break-all;
+}
+.readonly-field {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--white);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  padding: 0.6rem 0.8rem;
+  user-select: all;
+  -webkit-user-select: all;
+}
+.dim { color: var(--dim); }
+.modal-confirm {
+  max-width: 440px;
+}
+.modal-confirm.danger {
+  border-top-color: var(--red);
+}
+.modal-confirm.danger .modal-title .diamond {
+  color: var(--red);
+}
+.confirm-message {
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--white);
+  white-space: pre-line;
+  letter-spacing: 0.02em;
+}
+.confirm-message strong {
+  color: var(--green);
+  font-weight: 700;
+}
+.modal-confirm.danger .confirm-message strong {
+  color: var(--pink);
+}
+#confirm-input-wrap input {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+}
+#confirm-extra {
+  margin-top: 0.5rem;
+}
+.modal-confirm .modal-footer .btn:last-child {
+  border-color: rgba(10,255,158,0.4);
+  color: var(--green);
+}
+.modal-confirm .modal-footer .btn:last-child:hover {
+  background: var(--green);
+  color: var(--bg);
+}
+.modal-confirm.danger .modal-footer .btn:last-child {
+  border-color: rgba(255,51,51,0.4);
+  color: var(--red);
+}
+.modal-confirm.danger .modal-footer .btn:last-child:hover {
+  background: var(--red);
+  color: var(--bg);
+}
+.attach-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 1rem;
+  border-top: 1px dashed var(--border);
+  background: var(--bg2);
+  font-size: 0.78rem;
+}
+.attach-preview-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+.attach-preview-info {
+  flex: 1;
+  min-width: 0;
+}
+.attach-preview-name {
+  color: var(--white);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.attach-preview-meta {
+  font-size: 0.68rem;
+  color: var(--dim);
+  margin-top: 2px;
+  font-family: 'Share Tech Mono', monospace;
+}
+.attach-preview-remove {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.attach-preview-remove:hover { color: var(--red); border-color: var(--red); }
+.attach-slot.expired {
+  border-color: var(--dim);
+  border-style: solid;
+  background: rgba(58, 74, 90, 0.1);
+  cursor: default;
+  opacity: 0.7;
+}
+.attach-slot.expired:hover {
+  background: rgba(58, 74, 90, 0.1);
+}
+.attach-slot.expired .attach-slot-name {
+  color: var(--dim);
+  text-decoration: line-through;
+}
+.attach-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px dashed rgba(10,255,158,0.4);
+  background: rgba(10,255,158,0.04);
+  margin-bottom: 0.4rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.msg.theirs .attach-slot {
+  border-color: rgba(255,10,108,0.4);
+  background: rgba(255,10,108,0.04);
+}
+.attach-slot:hover {
+  background: rgba(10,255,158,0.08);
+}
+.attach-slot.loaded {
+  cursor: default;
+  border-style: solid;
+  display: block;
+  padding: 0.35rem;
+}
+.attach-slot-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+.attach-slot-info {
+  flex: 1;
+  min-width: 0;
+}
+.attach-slot-name {
+  font-size: 0.78rem;
+  color: var(--white);
+  word-break: break-all;
+  font-weight: 700;
+}
+.attach-slot-meta {
+  font-size: 0.65rem;
+  color: var(--dim);
+  margin-top: 2px;
+  font-family: 'Share Tech Mono', monospace;
+}
+.attach-image, .attach-video {
+  max-width: 100%;
+  max-height: 320px;
+  display: block;
+  border-radius: 0;
+}
+.attach-audio {
+  width: 100%;
+  display: block;
+}
+.attach-download {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.7rem;
+  color: var(--green);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(10,255,158,0.4);
+  padding: 0.25rem 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+.attach-download:hover {
+  background: var(--green);
+  color: var(--bg);
+}
+.attach-download-inline {
+  display: none; 
+}
+.attach-image, .attach-video, .attach-audio {
+  cursor: context-menu;
+}
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg2);
+  border: 1px solid rgba(10,255,158,0.4);
+  color: var(--green);
+  padding: 0.55rem 1rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s;
+  z-index: 1000;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.toast.error {
+  border-color: rgba(255,51,51,0.5);
+  color: var(--red);
+}
+.header-back-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  width: 32px;
+  height: 32px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+}
+.header-back-btn:hover { color: var(--green); border-color: var(--green); }
+.header-action-btn {
+  display: inline-flex;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  width: 32px;
+  height: 32px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  transition: all 0.15s;
+}
+.header-action-btn:hover {
+  color: var(--pink);
+  border-color: rgba(255,10,108,0.5);
+}
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(8,11,15,0.7);
+  z-index: 49;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s;
+}
+.sidebar-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.composer { padding-bottom: max(0.8rem, env(safe-area-inset-bottom)); }
+@media (max-width: 960px) {
+  .sidebar { width: 250px; }
+  pre.ascii { font-size: 0.6rem; }
+}
+@media (max-width: 720px) {
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 82vw;
+    max-width: 320px;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.24s ease;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay { display: block; }
+  .header-back-btn { display: inline-flex; }
+  .chat { width: 100%; }
+  .chat-header {
+    padding: 0.6rem 0.75rem;
+    gap: 0.5rem;
+    min-height: 50px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+  .chat-header > div { min-width: 0; }
+  .peer-name {
+    font-size: 0.82rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .peer-fp {
+    font-size: 0.55rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90px;
+  }
+  .meta-line {
+    font-size: 0.6rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .messages { padding: 0.8rem 0.85rem; gap: 0.45rem; }
+  .msg { max-width: 88%; padding: 0.5rem 0.75rem; font-size: 0.85rem; }
+  .msg-meta { font-size: 0.58rem; }
+  .msg-sender { font-size: 0.58rem; }
+  .composer {
+    padding: 0.55rem 0.7rem;
+    padding-bottom: max(0.55rem, env(safe-area-inset-bottom));
+    gap: 0.35rem;
+  }
+  .composer textarea { font-size: 16px; padding: 0.5rem 0.65rem; } 
+  .composer-btn { padding: 0 0.55rem; min-width: 38px; font-size: 0.75rem; }
+  #auth-view { padding: 1rem 1rem; }
+  .auth-frame { padding: 0.5rem 0; max-width: 100%; }
+  .ascii-wrap {
+    margin-bottom: 1.2rem;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding: 0 1rem;
+  }
+  pre.ascii { font-size: 0.5rem; line-height: 1.2; }
+  .tagline { font-size: 0.72rem; }
+  .hero-divider { font-size: 0.65rem; }
+  .tab { font-size: 0.72rem; padding: 0.42rem 0.85rem; flex: 1; text-align: center; }
+  input, textarea, .form-input {
+    font-size: 16px;  
+    padding: 0.65rem 0.75rem;
+  }
+  label > span { font-size: 0.68rem; }
+  .btn { padding: 0.7rem 1rem; font-size: 0.74rem; width: 100%; text-align: center; }
+  .btn.primary, .btn.pink { padding: 0.85rem 1rem; }
+  .hint { font-size: 0.74rem; padding: 0.7rem 0.85rem; }
+  .auth-footer { font-size: 0.62rem; flex-wrap: wrap; }
+  .me { padding: 0.85rem 1rem; }
+  .contact { padding: 0.8rem 1rem; }
+  .contact-name { font-size: 0.82rem; }
+  .section-header { padding: 0.85rem 1rem 0.55rem; }
+  #groups-list { max-height: 35vh; }
+  .modal-overlay {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+  .modal {
+    max-width: 100%;
+    max-height: 100vh;
+    max-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
+    border: none;
+    border-top: 2px solid var(--pink);
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-body { padding: 1rem; gap: 0.85rem; flex: 1; overflow-y: auto; }
+  .modal-footer {
+    padding: 0.75rem 1rem;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+    gap: 0.45rem;
+  }
+  .modal-footer .btn { flex: 1; }
+  .modal-header { padding: 0.85rem 1rem; }
+  .member-picker { max-height: 32vh; }
+  .member-row { padding: 0.7rem 0.85rem; font-size: 0.82rem; }
+  .popup-menu {
+    position: fixed !important;
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+    bottom: max(0.75rem, env(safe-area-inset-bottom)) !important;
+    top: auto !important;
+    min-width: 0;
+    border-top: 2px solid var(--pink);
+  }
+  .popup-item { padding: 0.85rem 1rem; font-size: 0.82rem; }
+  .popup-title { padding: 0.65rem 1rem; font-size: 0.66rem; }
+  .toast { bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px)); font-size: 0.7rem; }
+}
+@media (max-width: 380px) {
+  pre.ascii { font-size: 0.42rem; }
+  .auth-frame { padding: 0; }
+  .ascii-wrap { margin-bottom: 0.9rem; }
+  .me-fp { font-size: 0.56rem; }
+  .messages { padding: 0.65rem 0.75rem; }
+  .msg { max-width: 92%; font-size: 0.82rem; }
+  .composer-btn { min-width: 36px; }
+  .chat-header { padding: 0.6rem 0.7rem; }
+  .header-back-btn, .header-action-btn { width: 30px; height: 30px; }
+}
+@media (max-height: 520px) and (max-width: 960px) {
+  pre.ascii { font-size: 0.42rem; line-height: 1.15; }
+  .ascii-wrap { margin-bottom: 0.7rem; }
+  #auth-view { padding: 0.5rem 1rem; }
+  .auth-frame { padding: 0.5rem 0; }
+  .hint { display: none; }  
+}
+
+/* ── ASCII banner glitch effect ── */
+.brand {
+  position: relative;
+}
+.brand .ascii {
+  animation: glitch-skew 3s infinite steps(1);
+}
+.brand .ascii::before,
+.brand .ascii::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  overflow: hidden;
+  white-space: pre;
+  font-family: 'Fira Code', 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  line-height: 1.26;
+  pointer-events: none;
+}
+.brand .ascii::before {
+  color: var(--green);
+  z-index: -1;
+  animation: glitch-offset-red 3s infinite steps(1);
+}
+.brand .ascii::after {
+  color: magenta;
+  z-index: -2;
+  animation: glitch-offset-blue 3s infinite steps(1);
+}
+@keyframes glitch-skew {
+  0%, 94%, 100% { transform: skew(0deg, 0deg); }
+  95% { transform: skew(5deg, 2deg); }
+  96% { transform: skew(-3deg, -1deg); }
+  97% { transform: skew(2deg, 0.5deg); }
+  98% { transform: skew(-1deg, 1deg); }
+  99% { transform: skew(0deg, 0deg); }
+}
+@keyframes glitch-offset-red {
+  0%, 90%, 100% { transform: translate(0, 0); opacity: 0; }
+  92% { transform: translate(-2px, 1px); opacity: 0.7; }
+  94% { transform: translate(2px, -1px); opacity: 0; }
+  96% { transform: translate(-3px, -2px); opacity: 0.8; }
+  98% { transform: translate(1px, 2px); opacity: 0; }
+}
+@keyframes glitch-offset-blue {
+  0%, 90%, 100% { transform: translate(0, 0); opacity: 0; }
+  93% { transform: translate(2px, -1px); opacity: 0.7; }
+  95% { transform: translate(-2px, 1px); opacity: 0; }
+  97% { transform: translate(3px, 2px); opacity: 0.8; }
+  99% { transform: translate(-1px, -2px); opacity: 0; }
+}
+.brand:hover .ascii {
+  animation: glitch-skew 1s infinite steps(1);
+}
+.brand:hover .ascii::before {
+  animation: glitch-offset-red 0.5s infinite steps(1);
+}
+.brand:hover .ascii::after {
+  animation: glitch-offset-blue 0.5s infinite steps(1);
+}
+
+/* ── Guide modal ── */
+.guide-step {
+  display: grid;
+  grid-template-columns: 1.8rem 1fr;
+  gap: 0.5rem 0.75rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--border);
+  align-items: start;
+}
+.guide-step:last-child { border-bottom: none; }
+.guide-step-num {
+  font-size: 0.6rem;
+  color: var(--pink);
+  letter-spacing: 0.12em;
+  font-family: 'Share Tech Mono', monospace;
+  padding-top: 0.1rem;
+  text-align: right;
+}
+.guide-step-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.28rem;
+}
+.guide-step-body {
+  font-size: 0.72rem;
+  color: var(--dim);
+  line-height: 1.7;
+  grid-column: 2;
+}
+.guide-step-body .hl { color: var(--white); }
+.guide-step-body .key {
+  display: inline-block;
+  border: 1px solid var(--border);
+  color: var(--cyan);
+  font-size: 0.65rem;
+  padding: 0 0.35rem;
+  letter-spacing: 0.06em;
+  font-family: 'Share Tech Mono', monospace;
+  vertical-align: baseline;
+  line-height: 1.5;
+}
+.guide-step-title-wrap { grid-column: 2; }
+.guide-code {
+  display: block;
+  margin-top: 0.4rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--cyan);
+  color: var(--cyan);
+  font-family: 'Fira Code', 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  line-height: 1.7;
+  white-space: pre;
+  overflow-x: auto;
+  letter-spacing: 0;
+}
+
+</style>
+</head>
+<body>
+<section id="auth-view" class="view">
+  <div style="position:fixed;top:1rem;right:1rem;z-index:9000;display:flex;gap:0.4rem;">
+    <a href="/api/integrity" target="_blank" rel="noopener" id="hashes-btn" style="font-size:0.65rem;padding:0.28rem 0.7rem;letter-spacing:0.1em;background:transparent;border:1px solid var(--cyan);color:var(--cyan);font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all 0.2s;text-decoration:none;">[ # hashes ]</a>
+    <button id="guide-btn" style="font-size:0.65rem;padding:0.28rem 0.7rem;letter-spacing:0.1em;background:transparent;border:1px solid var(--pink);color:var(--pink);font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all 0.2s;">[ ? guide ]</button>
+  </div>
+  <div class="auth-frame">
+    <div class="brand">
+      <div class="ascii-wrap"><center>
+<pre class="ascii" data-text="  ███╗   ██╗██╗██╗██╗  ██╗     ████╗██╗  ██╗ █████╗ ████████╗
+  ████╗  ██║██║██║╚██╗██╔╝    ██╔══╝██║  ██║██╔══██╗╚══██╔══╝
+  ██╔██╗ ██║██║██║ ╚███╔╝     ██║   ███████║███████║   ██║   
+  ██║╚██╗██║██║██║ ██╔██╗     ██║   ██╔══██║██╔══██║   ██║   
+  ██║ ╚████║██║██║██╔╝ ██╗    ╚████╗██║  ██║██║  ██║   ██║   
+  ╚═╝  ╚═══╝╚═╝╚═╝╚═╝  ╚═╝     ╚═══╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   "><span class="g">  ███╗   ██╗██╗██╗██╗  ██╗</span>     <span class="p">████╗██╗  ██╗ █████╗ ████████╗</span>
+<span class="g">  ████╗  ██║██║██║╚██╗██╔╝</span>    <span class="p">██╔══╝██║  ██║██╔══██╗╚══██╔══╝</span>
+<span class="g">  ██╔██╗ ██║██║██║ ╚███╔╝ </span>    <span class="p">██║   ███████║███████║   ██║   </span>
+<span class="g">  ██║╚██╗██║██║██║ ██╔██╗ </span>    <span class="p">██║   ██╔══██║██╔══██║   ██║   </span>
+<span class="g">  ██║ ╚████║██║██║██╔╝ ██╗</span>    <span class="p">╚████╗██║  ██║██║  ██║   ██║   </span>
+<span class="g">  ╚═╝  ╚═══╝╚═╝╚═╝╚═╝  ╚═╝</span>     <span class="p">╚═══╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   </span></pre>
+      </div>
+      <p class="tagline">x25519 · xchacha20 · blind relay · zero-knowledge server</p>
+      <div class="hero-divider">───────────────────────────────────────────────────────────────────</div></center>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="login" role="tab">[ login ]</button>
+      <button class="tab" data-tab="register" role="tab">[ register ]</button>
+    </div>
+    <form id="login-form" class="auth-form active" autocomplete="off">
+      <label>
+        <span>username <span class="req-star">*</span></span>
+        <input name="username" required minlength="3" maxlength="32" autocomplete="username" />
+      </label>
+      <label>
+        <span>password <span class="req-star">*</span></span>
+        <input type="password" name="password" required minlength="8" autocomplete="current-password" />
+      </label>
+      <button type="submit" class="btn primary">
+        <span class="btn-label">[ decrypt session ]</span>
+        <span class="btn-spinner"></span>
+      </button>
+      <p class="form-error" id="login-error"></p>
+    </form>
+    <form id="register-form" class="auth-form" autocomplete="off">
+      <label>
+        <span>username <span class="req-star">*</span></span>
+        <input name="username" required minlength="3" maxlength="32" pattern="[a-zA-Z0-9_\-]+" autocomplete="username" />
+      </label>
+      <label>
+        <span>password <span class="req-star">*</span></span>
+        <input type="password" name="password" required minlength="8" autocomplete="new-password" />
+      </label>
+      <label>
+        <span>confirm <span class="req-star">*</span></span>
+        <input type="password" name="confirm" required minlength="8" autocomplete="new-password" />
+      </label>
+      <div class="hint">
+        <span class="warn-title">⚠  before you continue</span>
+        this password locks your private key.<br>
+        if you forget it, your account and history are unrecoverable.<br>
+        <br>
+        <strong>use a long passphrase</strong> — your encrypted private key is stored
+        in your browser's localStorage. a weak password makes it crackable
+        offline if the data is ever exfiltrated.
+      </div>
+      <button type="submit" class="btn primary">
+        <span class="btn-label">[ generate keypair · register ]</span>
+        <span class="btn-spinner"></span>
+      </button>
+      <p class="form-error" id="register-error"></p>
+      <p class="form-progress" id="register-progress"></p>
+    </form>
+  </div>
+  <div class="auth-footer">
+    <span class="diamond">◈</span> end-to-end · copyleft· open source <span class="diamond">◈</span>
+  </div>
+</section>
+<section id="chat-view" class="view hidden">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="me">
+      <div class="me-info">
+        <div class="me-name" id="me-name" title="account · click for settings">—</div>
+        <div class="me-fp" id="me-fingerprint" title="your key fingerprint · click to copy">—</div>
+      </div>
+      <button id="requests-btn" class="icon-btn" title="contact requests">
+        ✉<span id="requests-badge" class="badge hidden">0</span>
+      </button>
+      <button id="account-btn" class="icon-btn" title="account settings">⚙</button>
+      <button id="logout-btn" class="icon-btn" title="logout">⎋</button>
+    </div>
+    <div class="search-wrap">
+      <input id="user-search" type="text" placeholder="// find in contacts..." autocomplete="off" />
+      <button id="add-contact-btn" class="mini-btn search-add-btn" title="add by fingerprint">+</button>
+    </div>
+    <div class="sidebar-section">
+      <div class="section-header">
+        <span class="diamond">◈</span>
+        <h3>groups</h3>
+        <span class="line"></span>
+        <button id="new-group-btn" class="mini-btn" title="new group">+</button>
+      </div>
+      <div class="contacts" id="groups-list"></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="section-header">
+        <span class="diamond">◈</span>
+        <h3>contacts</h3>
+        <span class="line"></span>
+      </div>
+      <div class="contacts" id="contacts"></div>
+    </div>
+  </aside>
+  <main class="chat">
+    <header class="chat-header" id="chat-header">
+      <button class="header-back-btn" id="header-menu-btn" title="open contacts">☰</button>
+      <div class="empty-header">// select a contact or group</div>
+    </header>
+    <div class="messages" id="messages">
+      <div class="placeholder">
+        <span class="diamond">◈</span>
+        <p>pick a contact or group on the left, or create a new one to begin an encrypted session.</p>
+      </div>
+    </div>
+    <form id="send-form" class="composer hidden" autocomplete="off">
+      <button type="button" id="attach-btn" class="composer-btn" title="attach file">
+        <span>📎</span>
+      </button>
+      <input type="file" id="attach-input" class="hidden" />
+      <button type="button" id="timer-btn" class="composer-btn" title="disappearing message timer">
+        <span id="timer-label">⏱</span>
+      </button>
+      <textarea id="message-input" placeholder="// type · enter to send · shift+enter for newline" rows="1"></textarea>
+      <button type="submit" class="composer-btn send-btn" title="encrypt & send">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M13 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </form>
+    <div id="attach-preview" class="attach-preview hidden">
+      <div class="attach-preview-icon" id="attach-preview-icon">📄</div>
+      <div class="attach-preview-info">
+        <div class="attach-preview-name" id="attach-preview-name">—</div>
+        <div class="attach-preview-meta" id="attach-preview-meta">—</div>
+      </div>
+      <button type="button" class="attach-preview-remove" id="attach-preview-remove" title="remove attachment">[ ✕ ]</button>
+    </div>
+  </main>
+</section>
+<div id="timer-menu" class="popup-menu hidden">
+  <div class="popup-title">disappear after</div>
+  <button class="popup-item" data-seconds="0">·  off · keep forever</button>
+  <button class="popup-item" data-seconds="3600">·  1 hour</button>
+  <button class="popup-item" data-seconds="18000">·  5 hours</button>
+  <button class="popup-item" data-seconds="43200">·  12 hours</button>
+  <button class="popup-item" data-seconds="86400">·  24 hours</button>
+  <button class="popup-item" data-seconds="604800">·  1 week</button>
+</div>
+<div id="msg-menu" class="popup-menu hidden">
+  <div class="popup-title">message</div>
+  <button class="popup-item danger" data-action="delete-me">·  delete for me</button>
+  <button class="popup-item danger" data-action="delete">·  delete for everyone</button>
+  <button class="popup-item" data-action="download" style="display:none">·  download</button>
+  <button class="popup-item" data-action="cancel">·  cancel</button>
+</div>
+<div id="group-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><span class="diamond">◈</span> new group</div>
+      <button class="modal-close" id="group-modal-close">[ ✕ ]</button>
+    </div>
+    <div class="modal-body">
+      <label>
+        <span>group name <span class="req-star">*</span></span>
+        <input id="group-name-input" maxlength="64" placeholder="e.g. ops team" />
+      </label>
+      <label>
+        <span>add members <span class="req-star">*</span></span>
+        <input id="group-member-search" placeholder="// search users..." />
+      </label>
+      <div class="member-picker" id="member-picker"></div>
+      <div class="selected-members" id="selected-members"></div>
+      <div class="hint">
+        <span class="warn-title">⚠  group security</span>
+        messages are encrypted to every member's public key.<br>
+        verify their fingerprints out-of-band before discussing anything sensitive.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="group-cancel">[ cancel ]</button>
+      <button class="btn pink" id="group-create">
+        <span class="btn-label">[ create group ]</span>
+        <span class="btn-spinner"></span>
+      </button>
+    </div>
+  </div>
+</div>
+<div id="manage-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><span class="diamond">◈</span> manage · <span id="manage-group-name">group</span></div>
+      <button class="modal-close" id="manage-close">[ ✕ ]</button>
+    </div>
+    <div class="modal-body">
+      <div class="meta-line" id="manage-meta">— members</div>
+      <div class="manage-section">
+        <div class="section-header" style="padding: 0; background: transparent;">
+          <span class="diamond">◈</span>
+          <h3>members</h3>
+          <span class="line"></span>
+        </div>
+        <div class="manage-members-list" id="manage-members-list"></div>
+      </div>
+      <div class="manage-section hidden" id="manage-add-section">
+        <div class="section-header" style="padding: 0; background: transparent;">
+          <span class="diamond">◈</span>
+          <h3>add members</h3>
+          <span class="line"></span>
+        </div>
+        <input id="manage-add-search" placeholder="// search users..." />
+        <div class="member-picker" id="manage-add-picker"></div>
+        <button class="btn pink" id="manage-add-btn">
+          <span class="btn-label">[ add selected ]</span>
+          <span class="btn-spinner"></span>
+        </button>
+      </div>
+      <div class="hint">
+        <span class="warn-title">⚠  trust note</span>
+        when you add someone, the server tells everyone else's client about their public key.<br>
+        verify fingerprints out-of-band before discussing anything sensitive.
+      </div>
+      <div class="manage-section hidden" id="manage-danger-section">
+        <div class="section-header" style="padding: 0; background: transparent;">
+          <span class="diamond" style="color: var(--red);">◈</span>
+          <h3 style="color: var(--red);">danger zone</h3>
+          <span class="line" style="background: linear-gradient(90deg, rgba(255,51,51,0.4) 0%, transparent 100%);"></span>
+        </div>
+        <button class="btn danger" id="manage-delete-group">[ delete group permanently ]</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="manage-done">[ done ]</button>
+    </div>
+  </div>
+</div>
+<div id="addcontact-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><span class="diamond">◈</span> add contact</div>
+      <button class="modal-close" id="addcontact-close">[ ✕ ]</button>
+    </div>
+    <div class="modal-body">
+      <p class="dim" style="font-size: 0.78rem; line-height: 1.6;">
+        paste a 64-character fingerprint to find someone.<br>
+        ask them to copy theirs from their account panel and send it to you over a trusted channel.
+      </p>
+      <label>
+        <span>fingerprint</span>
+        <input id="fp-input" placeholder="0123 4567 89AB CDEF ..." spellcheck="false" autocomplete="off" />
+      </label>
+      <button class="btn primary" id="fp-search-btn">[ search ]</button>
+      <div id="fp-result"></div>
+    </div>
+  </div>
+</div>
+<div id="requests-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><span class="diamond">◈</span> contact requests</div>
+      <button class="modal-close" id="requests-close">[ ✕ ]</button>
+    </div>
+    <div class="modal-body">
+      <div class="manage-section">
+        <div class="section-header" style="padding: 0; background: transparent;">
+          <span class="diamond">◈</span>
+          <h3>incoming</h3>
+          <span class="line"></span>
+        </div>
+        <div class="manage-members-list" id="requests-incoming"></div>
+      </div>
+      <div class="manage-section">
+        <div class="section-header" style="padding: 0; background: transparent;">
+          <span class="diamond">◈</span>
+          <h3>outgoing</h3>
+          <span class="line"></span>
+        </div>
+        <div class="manage-members-list" id="requests-outgoing"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="account-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><span class="diamond">◈</span> account</div>
+      <button class="modal-close" id="account-close">[ ✕ ]</button>
+    </div>
+    <div class="modal-body">
+      <label>
+        <span>username</span>
+        <div class="readonly-field" id="account-name">—</div>
+      </label>
+      <label>
+        <span>your fingerprint <span class="dim" style="font-size:0.6rem">share this with people who want to add you</span></span>
+        <div class="readonly-field" id="account-fp" style="font-size: 0.7rem; word-break: break-all;">—</div>
+      </label>
+      <button class="btn" id="account-copy-fp">[ copy fingerprint ]</button>
+      <div class="manage-section">
+        <div class="section-header" style="padding: 0; background: transparent;">
+          <span class="diamond" style="color: var(--red);">◈</span>
+          <h3 style="color: var(--red);">danger zone</h3>
+          <span class="line" style="background: linear-gradient(90deg, rgba(255,51,51,0.4) 0%, transparent 100%);"></span>
+        </div>
+        <p class="dim" style="font-size: 0.74rem; line-height: 1.6;">
+          deletes your account, all messages you've sent, and removes you from all groups. cannot be undone.
+        </p>
+        <button class="btn danger" id="account-delete">[ delete my account ]</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="contact-menu" class="popup-menu hidden">
+  <div class="popup-title">contact</div>
+  <button class="popup-item" data-action="fingerprint">·  copy fingerprint</button>
+  <button class="popup-item" data-action="clear">·  clear chat (just for me)</button>
+  <button class="popup-item danger" data-action="delete-everywhere">·  delete my messages everywhere</button>
+  <button class="popup-item danger" data-action="remove">·  remove from contacts</button>
+</div>
+<div id="group-menu" class="popup-menu hidden">
+  <div class="popup-title">group</div>
+  <button class="popup-item" data-action="manage">·  manage members</button>
+  <button class="popup-item danger" data-action="leave">·  leave group</button>
+  <button class="popup-item danger" data-action="delete">·  delete group</button>
+</div>
+<div id="confirm-modal" class="modal-overlay">
+  <div class="modal modal-confirm">
+    <div class="modal-header">
+      <div class="modal-title"><span class="diamond" id="confirm-diamond">◈</span> <span id="confirm-title">confirm</span></div>
+      <button class="modal-close" id="confirm-x">[ ✕ ]</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-message" class="confirm-message"></p>
+      <div id="confirm-input-wrap" class="hidden">
+        <label>
+          <span id="confirm-input-label">type to confirm</span>
+          <input id="confirm-input" autocomplete="off" spellcheck="false" />
+        </label>
+      </div>
+      <div id="confirm-extra" class="hint hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="confirm-cancel">[ cancel ]</button>
+      <button class="btn" id="confirm-ok">[ confirm ]</button>
+    </div>
+  </div>
+</div>
+<div id="guide-modal" style="display:none;position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;padding:1rem;">
+  <div class="modal" style="max-width:560px;max-height:90vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <div class="modal-title"><span class="diamond">◈</span> how to use niix chat</div>
+      <button class="modal-close" id="guide-close">[ ✕ ]</button>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="guide-step">
+        <div class="guide-step-num">01</div>
+        <div class="guide-step-title-wrap">
+          <div class="guide-step-title">find your fingerprint</div>
+          <div class="guide-step-body">after logging in, your fingerprint is shown under your username in the top-left sidebar. click it to copy. share it with people who want to add you — over a trusted channel, not here.</div>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">02</div>
+        <div class="guide-step-title-wrap">
+          <div class="guide-step-title">send &amp; receive contact requests</div>
+          <div class="guide-step-body">to add someone, click <span class="key">+</span> next to the contacts search bar and paste their 64-character fingerprint. to accept incoming requests, click the <span class="key">✉</span> envelope icon in the top-left bar — a badge lights up when requests are waiting.</div>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">03</div>
+        <div class="guide-step-title-wrap">
+          <div class="guide-step-title">create groups</div>
+          <div class="guide-step-body">click <span class="key">+</span> next to the <span class="hl">groups</span> section header. give the group a name, search for contacts to add, then hit <span class="hl">[ create group ]</span>. to manage members later, right-click (or long-press) the group and choose <span class="hl">manage members</span>.</div>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">04</div>
+        <div class="guide-step-title-wrap">
+          <div class="guide-step-title">delete messages</div>
+          <div class="guide-step-body">right-click (or long-press on mobile) any message to open the message menu. <span class="hl">delete for me</span> removes it from your view only. <span class="hl">delete for everyone</span> asks the server to remove it from all recipients — only works on your own messages.</div>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">05</div>
+        <div class="guide-step-title-wrap">
+          <div class="guide-step-title">disappearing message timer</div>
+          <div class="guide-step-body">in the message composer, click the <span class="key">⏱</span> timer icon to set a per-conversation auto-delete window — 1h, 5h, 12h, 24h, or 1 week. messages are deleted automatically after the chosen time. set to <span class="hl">off</span> to keep messages forever.</div>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">06</div>
+        <div class="guide-step-title-wrap">
+          <div class="guide-step-title">download media</div>
+          <div class="guide-step-body">images and videos display inline. for files and other attachments, a download link appears below the attachment — click <span class="hl">[ download ]</span> to save it. images and videos also have a right-click context menu for saving directly.</div>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">07</div>
+        <div class="guide-step-title-wrap">
+          <div class="guide-step-title">logout</div>
+          <div class="guide-step-body">click the <span class="key">⎋</span> escape icon in the top-left sidebar. your encrypted private key stays in the browser — you can log back in with your password. clearing your browser data will permanently remove the key.</div>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">08</div>
+        <div class="guide-step-title-wrap">
+          <div class="guide-step-title">delete account</div>
+          <div class="guide-step-body">click <span class="key">⚙</span> in the top-left sidebar to open account settings. scroll to the <span class="hl" style="color:var(--red);">danger zone</span> and hit <span class="hl" style="color:var(--red);">[ delete my account ]</span>. this removes your account, all messages you've sent, and removes you from all groups. <strong style="color:var(--white);">cannot be undone.</strong></div>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">09</div>
+        <div class="guide-step-title-wrap">
+          <div class="guide-step-title">verify the app code</div>
+          <div class="guide-step-body">
+            niix chat publishes a signed hash list so you can confirm the code in your browser hasn't been tampered with.<br><br>
+            <span class="hl">step 1 —</span> click the <span class="key">[ # hashes ]</span> button at the top-right of this page. you'll see a styled page listing the SHA-256 hash of every public file currently served by this server.<br><br>
+            <span class="hl">step 2 —</span> compare those hashes against the signed <a class="hl" href="/integrity/hashes.txt" target="_blank" rel="noopener" style="color:var(--cyan);">hashes.txt</a> published on this server. if every hash matches, the files are untouched.<br><br>
+            <span class="hl">step 3 (optional) —</span> to verify the signature on <span class="key">hashes.txt</span>, download <a class="hl" href="/integrity/hashes.txt" target="_blank" rel="noopener" style="color:var(--cyan);">hashes.txt</a>, <a class="hl" href="/integrity/hashes.txt.sig" target="_blank" rel="noopener" style="color:var(--cyan);">hashes.txt.sig</a>, and <a class="hl" href="/integrity/signing-key.pub" target="_blank" rel="noopener" style="color:var(--cyan);">signing-key.pub</a> into a folder, then run:<br><br>
+            <code class="guide-code">node -e "
+const fs=require('fs'),crypto=require('crypto');
+const pub=crypto.createPublicKey({
+  key:Buffer.from(fs.readFileSync('signing-key.pub','utf8').trim(),'hex'),
+  format:'der',type:'spki'});
+const ok=crypto.verify(null,
+  fs.readFileSync('hashes.txt'),pub,
+  Buffer.from(fs.readFileSync('hashes.txt.sig','utf8').trim(),'hex'));
+console.log(ok?'✓ valid':'✗ INVALID');"</code><br><br>
+            if the output is <span class="hl" style="color:var(--green);">✓ valid</span> and all hashes match, the code is exactly what was published. if anything differs, do not use this instance.
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn primary" id="guide-ok">[ got it ]</button>
+    </div>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+<script src="/vendor-sodium.js?v=0.8.7"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/crypto.js?v=3.1"></script>
+<script src="/app.js?v=4.5"></script>
+<script src="/guide.js"></script>
+</body>
+</html>
