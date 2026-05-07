@@ -1,22 +1,4 @@
 #!/usr/bin/env node
-/**
- * generate-hashes.js — NiiX Chat integrity system (Phase 5)
- *
- * Generates SHA-256 hashes of all public files and optionally signs them
- * with an Ed25519 key using Node's built-in crypto module.
- *
- * Usage:
- *   node generate-hashes.js               # hash only, no signature
- *   node generate-hashes.js --sign        # hash + sign (requires .signing-key)
- *   node generate-hashes.js --gen-key     # generate a new Ed25519 signing keypair
- *
- * Output:
- *   hashes.txt       — human-readable hash list (upload to GitHub Pages)
- *   hashes.txt.sig   — hex Ed25519 signature (upload alongside hashes.txt)
- *   signing-key.pub  — your public key in hex (publish on GitHub)
- *
- * The .signing-key file (private key) stays LOCAL — never upload it.
- */
 
 'use strict';
 const fs     = require('fs');
